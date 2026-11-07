@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>wasle</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-title" content="wasle">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#fff8ef" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1b1416" media="(prefers-color-scheme: dark)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&family=Poppins:wght@700&display=swap" rel="stylesheet">
+<style id="style">
+/* wasle design system: thick ink outlines, unblurred offset shadows, flat fills. Layout: one narrow column, sticky filter row, floating add button */
+:root{
+  --paper:#fff8ef; --surface:#ffffff; --ink:#1b1416; --muted:#6e5f63; --line:#1b1416; --popc:#1b1416;
+  --brand:#ff9db0; --brand-strong:#b8325a; --cream:#fff4c9; --onfill:#1b1416;
+  --k-pair:#7fd6c2; --k-fact:#ffd25e; --k-kanji:#c7a6f0; --k-next:#8cc8ff; --k-lesson:#ff7f3f;
+  --good:#17784e; --bad:#c2253f;
+  --s2:2px; --s3:3px; --s4:4px;
+  --r-sm:10px; --r-md:16px; --r-lg:24px;
+  --display:Poppins,"M PLUS Rounded 1c","Hiragino Maru Gothic ProN",sans-serif;
+  --body:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --paper:#1b1416; --surface:#2a2024; --ink:#fff4e6; --muted:#c9b8bc; --line:#f7e7d6; --popc:#ff9db0; --brand-strong:#ffb3c3; --good:#6fe0a8; --bad:#ff8a95; color-scheme:dark; }
+}
+:root[data-theme="dark"]{ --paper:#1b1416; --surface:#2a2024; --ink:#fff4e6; --muted:#c9b8bc; --line:#f7e7d6; --popc:#ff9db0; --brand-strong:#ffb3c3; --good:#6fe0a8; --bad:#ff8a95; color-scheme:dark; }
+:root{ --logo-shadow:#1b1416; }
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --logo-shadow:#ff9db0; } }
+:root[data-theme="dark"]{ --logo-shadow:#ff9db0; }
+:root{ --pop-sm:2px 2px 0 var(--popc); --pop-md:3px 3px 0 var(--popc); --pop-lg:4px 4px 0 var(--popc); }
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.6;font-weight:500;-webkit-font-smoothing:antialiased}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:var(--s3) solid var(--brand-strong);outline-offset:3px}
+.wrap{max-width:560px;margin:0 auto;padding:0 16px 130px}
+.k-pair{--c:var(--k-pair)} .k-fact{--c:var(--k-fact)} .k-kanji{--c:var(--k-kanji)} .k-next{--c:var(--k-next)} .k-lesson{--c:var(--k-lesson)}
+
+/* header */
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:22px 0 14px}
+.brand h1{margin:0;font-family:var(--display);font-weight:700;font-size:40px;line-height:1;letter-spacing:-.02em;color:#fff;-webkit-text-stroke:var(--s4) #1b1416;paint-order:stroke fill;text-shadow:3px 4px 0 var(--logo-shadow)}
+.brand p{margin:8px 0 0;color:var(--muted);font-size:12.5px}
+.practice-btn{border:var(--s3) solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:7px 16px;font-weight:800;font-size:14px;white-space:nowrap;box-shadow:var(--pop-sm)}
+.practice-btn:active{transform:translate(2px,2px);box-shadow:none}
+
+.today{background:var(--cream);color:var(--onfill);border:var(--s3) solid #1b1416;border-radius:var(--r-md);padding:12px 16px;margin-bottom:16px;box-shadow:var(--pop-md)}
+.today small{display:block;font-size:11.5px;font-weight:800;letter-spacing:.06em}
+.today p{margin:2px 0 0;font-size:17px;font-weight:800;line-height:1.5;text-wrap:balance}
+
+.controls{position:sticky;top:0;z-index:5;background:var(--paper);padding:10px 0 12px;display:grid;gap:10px}
+.search{width:100%;border:var(--s3) solid var(--line);background:var(--surface);border-radius:var(--r-md);padding:8px 14px}
+.search::placeholder{color:var(--muted)}
+.search:focus{outline:none;box-shadow:var(--pop-md)}
+.tabs{display:flex;gap:8px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;padding:2px 4px 6px 0}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;border:var(--s3) solid var(--line);background:var(--surface);border-radius:999px;padding:4px 12px;font-size:13px;font-weight:800;display:flex;gap:6px;align-items:center;box-shadow:var(--pop-sm)}
+.tab .dot{width:10px;height:10px;border-radius:50%;border:var(--s2) solid #1b1416;background:var(--c,var(--surface))}
+.tab .n{color:var(--muted);font-size:11.5px;font-weight:700;font-variant-numeric:tabular-nums}
+.tab[aria-pressed="true"]{background:var(--brand);color:var(--onfill);border-color:#1b1416}
+.tab[aria-pressed="true"] .n{color:var(--onfill)}
+
+.sample-note{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12.5px;color:var(--muted);border:var(--s2) dashed var(--muted);border-radius:var(--r-md);padding:8px 12px;margin-bottom:14px}
+.sample-note button{border:none;background:none;color:var(--brand-strong);font-weight:800;padding:4px}
+
+/* cards */
+.list{display:grid;gap:12px}
+.card{background:var(--surface);border:var(--s3) solid var(--line);border-radius:var(--r-md);padding:10px 14px 12px;position:relative;box-shadow:var(--pop-md)}
+.card-top{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.tag{white-space:nowrap;font-size:11.5px;font-weight:800;letter-spacing:.04em;padding:1px 8px;border:var(--s2) solid #1b1416;border-radius:999px;background:var(--c);color:var(--onfill)}
+.chip{white-space:nowrap;font-size:11px;font-weight:800;border-radius:999px;padding:0 7px;border:var(--s2) solid currentColor}
+.chip.weak{color:var(--bad)}
+.chip.sample{color:var(--muted);border-style:dashed}
+.more{white-space:nowrap;margin-left:auto;border:none;background:none;color:var(--brand-strong);font-size:13px;font-weight:800;padding:2px 6px;border-radius:8px}
+.more:hover{text-decoration:underline}
+
+.pair-row{display:flex;gap:10px;align-items:baseline;font-size:17px}
+.pair-row .mk{font-weight:800;width:1.2em;flex:none;text-align:center}
+.pair-row.ok .mk{color:var(--good)}
+.pair-row.ok .w{font-weight:800}
+.pair-row.ng{color:var(--muted);font-size:14.5px}
+.pair-row.ng .w{text-decoration:line-through;text-decoration-color:var(--bad);text-decoration-thickness:2px}
+.pair-row.ng .mk{color:var(--bad)}
+.note{color:var(--muted);font-size:13px;margin-top:4px}
+.fact-q{font-weight:800;font-size:16px}
+.fact-a{margin-top:2px}
+.kanji-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.kanji-word{font-size:32px;line-height:1.25;font-weight:800;letter-spacing:.02em}
+.yomi{border:var(--s2) dashed var(--line);background:var(--surface);border-radius:999px;padding:4px 14px;font-size:13px;font-weight:800;min-width:7em}
+.yomi.shown{border:var(--s2) solid #1b1416;background:var(--cream);color:var(--onfill);font-size:16px}
+.next-title{font-weight:800;font-size:16px;margin-bottom:4px}
+.todo{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.todo label{display:flex;gap:10px;align-items:flex-start;padding:4px 0;cursor:pointer}
+.todo input{appearance:none;-webkit-appearance:none;width:20px;height:20px;margin:3px 0 0;flex:none;border:var(--s3) solid var(--line);border-radius:6px;background:var(--surface);display:grid;place-content:center;cursor:pointer}
+.todo input:checked{background:var(--k-next);border-color:#1b1416}
+.todo input:checked::after{content:"";width:10px;height:5px;border-left:3px solid #1b1416;border-bottom:3px solid #1b1416;transform:rotate(-45deg) translate(1px,-1px)}
+.todo .done span{color:var(--muted);text-decoration:line-through}
+.reset{border:none;background:none;color:var(--brand-strong);font-size:12.5px;font-weight:800;padding:4px 0;margin-top:2px}
+.lesson-text{font-size:18px;line-height:1.55;font-weight:800;text-wrap:balance}
+.empty{text-align:center;color:var(--muted);padding:32px 12px;font-size:14px}
+
+/* view switch */
+.bar-row{display:flex;gap:8px;align-items:center}
+.bar-row .search{flex:1;min-width:0}
+.views{display:flex;border:var(--s3) solid var(--line);border-radius:999px;overflow:hidden;background:var(--surface);flex:none;box-shadow:var(--pop-sm)}
+.views button{border:none;background:transparent;padding:7px 11px;color:var(--ink);display:flex;align-items:center}
+.views button+button{border-left:var(--s3) solid var(--line)}
+.views button[aria-pressed="true"]{background:var(--brand);color:var(--onfill)}
+.views svg{width:17px;height:17px;display:block}
+
+/* tile view */
+.list.tile{display:flex;gap:10px;align-items:flex-start}
+.list.tile .col{flex:1;min-width:0;display:grid;gap:10px}
+.list.tile .card{padding:8px 10px 10px;box-shadow:var(--pop-sm)}
+.list.tile .tag{font-size:10.5px;padding:0 6px}
+.list.tile .more{font-size:12px;padding:2px 4px}
+.list.tile .note{display:none}
+.list.tile .chip.sample{display:none}
+.list.tile .card-top{gap:4px}
+.list.tile .pair-row{font-size:14.5px;gap:6px}
+.list.tile .pair-row.ng{font-size:13px}
+.list.tile .kanji-row{flex-direction:column;align-items:flex-start;gap:4px}
+.list.tile .kanji-word{font-size:25px}
+.list.tile .yomi{min-width:0;padding:3px 10px;font-size:12px}
+.list.tile .yomi.shown{font-size:14px}
+.list.tile .lesson-text{font-size:15px}
+.list.tile .fact-a,.list.tile .lesson-text,.list.tile .fact-q{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.list.tile .todo label{font-size:13.5px;padding:2px 0;gap:6px}
+.list.tile .todo input{width:17px;height:17px}
+.list.tile .more-todos{font-size:12px;color:var(--muted)}
+
+/* row view */
+.list.rows{gap:0;background:var(--surface);border:var(--s3) solid var(--line);border-radius:var(--r-md);overflow:hidden;box-shadow:var(--pop-md)}
+.rows > *{min-width:0}
+.row{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:none;background:transparent;padding:10px 12px;border-bottom:var(--s2) solid var(--line)}
+.rows > :last-child{border-bottom:none}
+.row .dot{width:12px;height:12px;border-radius:50%;border:var(--s2) solid #1b1416;background:var(--c);flex:none}
+.row .main{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700}
+.row .sub{color:var(--muted);font-size:12.5px;flex:none;max-width:40%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .ng{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--bad);margin-left:6px;font-size:13px;font-weight:500}
+.row .kj{font-weight:800;font-size:17px}
+.row .chip{flex:none}
+.row-open{border-bottom:var(--s2) solid var(--line)}
+.row-open .card{border:none;border-radius:0;box-shadow:none;border-top:var(--s2) dashed var(--line)}
+.rows > .row-open:last-child{border-bottom:none}
+
+/* photos */
+.memo-img{display:block;width:100%;height:200px;object-fit:cover;border-radius:var(--r-sm);border:var(--s2) solid var(--line);margin-top:8px;background:var(--paper);cursor:zoom-in}
+.list.tile .memo-img{aspect-ratio:4/3;height:auto;margin-top:6px}
+.row-thumb{width:34px;height:34px;border-radius:8px;border:var(--s2) solid var(--line);object-fit:cover;flex:none;background:var(--paper)}
+.flabel{font-size:12px;font-weight:800;letter-spacing:.04em}
+.photo img{display:block;max-width:100%;max-height:220px;border-radius:var(--r-sm);border:var(--s2) solid var(--line)}
+.photo-actions{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.photo-btn{display:inline-flex;align-items:center;border:var(--s2) dashed var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;font-size:13.5px;font-weight:800;color:var(--ink);cursor:pointer}
+.photo-btn.solid{border-style:solid;box-shadow:var(--pop-sm)}
+.backdrop.viewer{align-items:center;background:rgba(27,20,22,.9);padding:16px;cursor:zoom-out}
+.viewer img{max-width:100%;max-height:100%;object-fit:contain;border-radius:var(--r-sm);border:var(--s3) solid #fff4e6}
+.q-img{display:block;max-width:100%;max-height:180px;margin:10px auto 0;border-radius:var(--r-sm);border:var(--s2) solid var(--line)}
+
+/* drag to reorder */
+[data-drag]{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.drag-src{opacity:.3}
+.drag-ghost{position:fixed;z-index:50;pointer-events:none;margin:0;transform:rotate(2deg) scale(1.03);box-shadow:var(--pop-md)!important;transition:none}
+.drag-ghost.row{background:var(--surface);border:var(--s3) solid var(--line)!important;border-radius:var(--r-md)}
+.drag-ghost.row-open{background:var(--surface);border:var(--s3) solid var(--line);border-radius:var(--r-md);overflow:hidden}
+body.dragging{overflow:hidden}
+@media (prefers-reduced-motion:reduce){.drag-ghost{transform:none}}
+
+/* theme picker */
+.themes{display:inline-flex;border:var(--s3) solid var(--line);border-radius:999px;overflow:hidden;background:var(--surface);box-shadow:var(--pop-sm);justify-self:start}
+.themes button{border:none;background:transparent;padding:7px 16px;font-size:13.5px;font-weight:800;color:var(--ink)}
+.themes button+button{border-left:var(--s3) solid var(--line)}
+.themes button[aria-pressed="true"]{background:var(--brand);color:var(--onfill)}
+
+/* backup */
+.backup{margin-top:32px;border-top:var(--s2) dashed var(--muted);padding-top:16px;display:grid;gap:8px}
+.backup h3{margin:0;font-size:13px;font-weight:800;letter-spacing:.06em}
+.backup p{margin:0;font-size:12.5px;color:var(--muted)}
+.backup .btns{display:flex;gap:10px;flex-wrap:wrap}
+.backup .btns button,.backup .btns label{border:var(--s3) solid var(--line);background:var(--surface);border-radius:var(--r-md);padding:8px 16px;font-size:14px;font-weight:800;cursor:pointer;box-shadow:var(--pop-sm)}
+.backup .btns button:active,.backup .btns label:active{transform:translate(2px,2px);box-shadow:none}
+.imp-sum{background:var(--cream);color:var(--onfill);border:var(--s2) solid #1b1416;border-radius:var(--r-md);padding:10px 12px;margin-bottom:12px;font-size:14px;font-weight:700}
+.imp-sum .hint{color:var(--onfill);opacity:.75}
+.imp-choices{display:grid;gap:10px}
+.imp-choices button{text-align:left;border:var(--s3) solid var(--line);background:var(--surface);border-radius:var(--r-md);padding:12px 14px;box-shadow:var(--pop-md)}
+.imp-choices button:active{transform:translate(3px,3px);box-shadow:none}
+.imp-choices b{display:block;font-weight:800}
+.imp-choices span{font-size:12.5px;color:var(--muted)}
+.imp-choices .warn b{color:var(--bad)}
+
+.fab{position:fixed;right:max(16px,calc(50% - 264px));bottom:22px;z-index:10;border:var(--s3) solid #1b1416;background:var(--brand);color:var(--onfill);border-radius:999px;padding:11px 20px;font-weight:800;font-size:15px;box-shadow:2px 2px 0 #1b1416}
+.fab:active{transform:translate(2px,2px);box-shadow:none}
+.status{position:fixed;left:max(16px,calc(50% - 264px));bottom:30px;z-index:9;font-size:12px;color:var(--muted);background:var(--paper);padding:2px 8px;border-radius:6px}
+.status:empty{display:none}
+.status button{border:none;background:none;color:var(--brand-strong);font-weight:800;font-size:12px;padding:0 0 0 4px}
+
+/* sheets */
+.backdrop{position:fixed;inset:0;z-index:20;background:rgba(27,20,22,.55);display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surface);width:100%;max-width:560px;max-height:92%;overflow:auto;border:var(--s3) solid var(--line);border-bottom:none;border-radius:var(--r-lg) var(--r-lg) 0 0;padding:20px 16px 26px}
+@media (min-width:600px){.backdrop{align-items:center;padding:16px}.sheet{border-bottom:var(--s3) solid var(--line);border-radius:var(--r-lg);box-shadow:var(--pop-lg)}}
+.sheet h2{font-size:20px;font-weight:800;margin:0 0 14px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.x{flex:none;width:36px;height:36px;border:var(--s3) solid var(--line);border-radius:50%;background:var(--surface);color:var(--ink);font-size:18px;font-weight:800;line-height:1;padding:0;box-shadow:var(--pop-sm)}
+.x:active{transform:translate(2px,2px);box-shadow:none}
+.kinds{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-bottom:16px}
+.kind{text-align:left;border:var(--s3) solid var(--line);background:var(--surface);border-radius:var(--r-md);padding:8px 10px;box-shadow:var(--pop-sm)}
+.kind b{display:flex;align-items:center;gap:6px;font-size:13.5px;font-weight:800}
+.kind b::before{content:"";width:10px;height:10px;border-radius:50%;border:var(--s2) solid #1b1416;background:var(--c);flex:none}
+.kind span{font-size:11.5px;color:var(--muted)}
+.kind[aria-pressed="true"]{background:var(--c);border-color:#1b1416;color:var(--onfill)}
+.kind[aria-pressed="true"] span{color:var(--onfill)}
+.field{display:grid;gap:6px;margin-bottom:14px}
+.field label{font-size:12px;font-weight:800;letter-spacing:.04em}
+.field input,.field textarea{border:var(--s3) solid var(--line);background:var(--surface);border-radius:var(--r-md);padding:9px 13px;width:100%}
+.field input::placeholder,.field textarea::placeholder{color:var(--muted)}
+.field input:focus,.field textarea:focus{outline:none;box-shadow:var(--pop-md)}
+.field textarea{min-height:88px;resize:vertical}
+.hint{font-size:11.5px;color:var(--muted)}
+.actions{display:flex;gap:8px;justify-content:space-between;align-items:center;margin-top:8px}
+.primary{border:var(--s3) solid #1b1416;background:var(--brand);color:var(--onfill);border-radius:var(--r-md);padding:10px 24px;font-weight:800;box-shadow:var(--pop-md)}
+.primary:active{transform:translate(3px,3px);box-shadow:none}
+.ghost{border:var(--s3) solid var(--line);background:var(--surface);border-radius:var(--r-md);padding:10px 14px;font-weight:800}
+.danger{border:none;background:none;color:var(--bad);padding:10px 4px;font-size:13.5px;font-weight:800}
+.err{color:var(--bad);font-size:12.5px;font-weight:800;min-height:1em}
+
+/* practice */
+.q-meta{color:var(--muted);font-size:12.5px;font-weight:700;margin-bottom:8px;font-variant-numeric:tabular-nums}
+.bar{height:12px;background:var(--paper);border:var(--s2) solid var(--line);border-radius:999px;overflow:hidden;margin-bottom:18px}
+.bar i{display:block;height:100%;background:var(--brand)}
+.q-ask{font-size:13px;font-weight:800;color:var(--muted);margin-bottom:10px}
+.q-big{font-size:44px;font-weight:800;text-align:center;padding:16px 0}
+.q-text{font-size:19px;font-weight:800;padding:8px 0 16px}
+.choices{display:grid;gap:10px}
+.choice{border:var(--s3) solid var(--line);background:var(--surface);border-radius:var(--r-md);padding:14px 16px;font-size:18px;font-weight:800;text-align:left;box-shadow:var(--pop-md)}
+.choice:active{transform:translate(3px,3px);box-shadow:none}
+.choice.right{background:var(--k-pair);color:var(--onfill);border-color:#1b1416}
+.choice.wrong{color:var(--bad);text-decoration:line-through;box-shadow:none;transform:translate(3px,3px)}
+.choice[disabled]{cursor:default}
+.reveal{text-align:center;font-size:22px;font-weight:800;padding:6px 0 4px}
+.verdict{font-weight:800;margin:14px 0 4px}
+.verdict.g{color:var(--good)} .verdict.b{color:var(--bad)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.two button{padding:12px;border-radius:var(--r-md);font-weight:800;border:var(--s3) solid var(--line);background:var(--surface);box-shadow:var(--pop-md)}
+.two button:active{transform:translate(3px,3px);box-shadow:none}
+.two .g{color:var(--good)} .two .b{color:var(--bad)}
+.score{font-family:var(--display);font-weight:700;font-size:40px;text-align:center;margin:8px 0;font-variant-numeric:tabular-nums}
+.weaklist{margin:8px 0 0;padding-left:1.2em;color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){.sheet{animation:up .18s ease-out}@keyframes up{from{transform:translateY(16px);opacity:.6}}}
+@media (prefers-reduced-motion:reduce){*:active{transform:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script id="data" type="application/json">{"v":1,"updatedAt":1,"items":[
+{"id":"s1","kind":"pair","right":"シミュレーション","wrong":"シュミレーション","note":"simulation の「シ」から","sample":true,"hit":0,"miss":0},
+{"id":"s2","kind":"kanji","word":"強ち","yomi":"あながち","note":"あとに打ち消しが続く（強ち間違いではない）","sample":true,"hit":0,"miss":0},
+{"id":"s3","kind":"next","place":"美容院","todos":[{"t":"前髪は眉にかかるくらいで止めてもらう","d":false},{"t":"すきすぎないで、と最初に言う","d":false},{"t":"襟足は残す","d":false}],"sample":true},
+{"id":"s4","kind":"lesson","text":"迷ったら、ひと晩寝てから決める。","note":"","sample":true},
+{"id":"s5","kind":"pair","right":"汚名返上","wrong":"汚名挽回","note":"挽回するのは「名誉」","sample":true,"hit":0,"miss":0},
+{"id":"s6","kind":"fact","q":"ネジを締めるのはどっち回り？","a":"時計回り（右に回すと締まる）","sample":true,"hit":0,"miss":0},
+{"id":"s7","kind":"kanji","word":"長閑","yomi":"のどか","note":"","sample":true,"hit":0,"miss":0},
+{"id":"s8","kind":"lesson","text":"疲れている夜に、大事な返信はしない。","note":"","sample":true},
+{"id":"s9","kind":"fact","q":"大さじ1は何ml？","a":"15ml（小さじは5ml）","sample":true,"hit":0,"miss":0},
+{"id":"s10","kind":"kanji","word":"蔑ろ","yomi":"ないがしろ","note":"","sample":true,"hit":0,"miss":0}
+]}</script>
+<script id="main">
+(function(){
+"use strict";
+var HEAD = '<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>wasle</title>\n<link rel="apple-touch-icon" href="apple-touch-icon.png">\n<link rel="icon" type="image/png" href="icon-192.png">\n<link rel="manifest" href="manifest.webmanifest">\n<meta name="apple-mobile-web-app-title" content="wasle">\n<meta name="apple-mobile-web-app-capable" content="yes">\n<meta name="mobile-web-app-capable" content="yes">\n<meta name="theme-color" content="#fff8ef" media="(prefers-color-scheme: light)">\n<meta name="theme-color" content="#1b1416" media="(prefers-color-scheme: dark)">\n<link rel="preconnect" href="https://fonts.googleapis.com">\n<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&family=Poppins:wght@700&display=swap" rel="stylesheet">';
+var STYLE = document.getElementById('style').textContent;
+var MAIN = document.getElementById('main').textContent;
+var LS = 'wasurecho-v1';
+
+var KINDS = {
+  pair:  {label:'二択',   long:'どっちだっけ',   desc:'いつも迷う2択'},
+  fact:  {label:'覚える', long:'覚えられない',   desc:'何度でも忘れること'},
+  kanji: {label:'読み',   long:'読めない漢字',   desc:'読み方を忘れる漢字'},
+  next:  {label:'次こそ', long:'次やるときに',   desc:'次の美容院で言うこと など'},
+  lesson:{label:'教訓',   long:'人生の教訓',     desc:'忘れたくない学び'}
+};
+var ORDER = ['pair','fact','kanji','next','lesson'];
+
+/* ---------- state ---------- */
+var state = JSON.parse(document.getElementById('data').textContent);
+var unsavedFromLocal = false;
+try{
+  var local = JSON.parse(localStorage.getItem(LS) || 'null');
+  if(local && local.items && local.updatedAt > state.updatedAt){ state = local; unsavedFromLocal = true; }
+}catch(e){}
+
+var ui = {filter:'all', q:'', shown:{}, confirmSamples:false, view:'card', open:{}};
+ui.theme = 'auto';
+try{ var th = localStorage.getItem(LS+'-theme'); if(th==='light'||th==='dark') ui.theme = th; }catch(e){}
+function applyTheme(){
+  var r = document.documentElement;
+  if(ui.theme==='auto') r.removeAttribute('data-theme'); else r.setAttribute('data-theme', ui.theme);
+  var dark = ui.theme==='dark' || (ui.theme==='auto' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+  Array.prototype.forEach.call(document.querySelectorAll('meta[name="theme-color"]'), function(m){ m.setAttribute('content', dark ? '#1b1416' : '#fff8ef'); });
+}
+applyTheme();
+try{ matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(){ if(ui.theme==='auto') applyTheme(); }); }catch(e){}
+try{ var v = localStorage.getItem(LS+'-view'); if(v==='card'||v==='tile'||v==='row') ui.view = v; }catch(e){}
+try{ var su = JSON.parse(sessionStorage.getItem(LS+'-ui')||'null'); if(su){ ui.filter = su.filter||'all'; ui.q = su.q||''; } }catch(e){}
+
+var art = null, pubTimer = null, dirty = unsavedFromLocal, busy = false, readOnly = false;
+var statusText = unsavedFromLocal ? 'unsaved' : 'idle';
+
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+function byId(id){ for(var i=0;i<state.items.length;i++) if(state.items[i].id===id) return state.items[i]; return null; }
+function isWeak(it){ return (it.miss||0)>=1 && (it.miss||0)>=(it.hit||0); }
+
+function commit(){
+  state.updatedAt = Date.now();
+  try{ localStorage.setItem(LS, JSON.stringify(state)); }catch(e){}
+  dirty = true;
+  render();
+  schedulePublish();
+}
+function saveUi(){ try{ sessionStorage.setItem(LS+'-ui', JSON.stringify({filter:ui.filter,q:ui.q})); }catch(e){} }
+
+/* ---------- publish (keeps the data inside the page itself) ---------- */
+function buildDoc(){
+  var json = JSON.stringify(state).replace(/</g,'\\u003c');
+  return '<!DOCTYPE html>\n<html lang="ja">\n<head>\n'+HEAD+'\n<style id="style">'+STYLE+'</style>\n</head>\n<body>\n<div id="app"></div>\n<script id="data" type="application/json">'+json+'<\/script>\n<script id="main">'+MAIN+'<\/script>\n</body>\n</html>\n';
+}
+function schedulePublish(){
+  clearTimeout(pubTimer);
+  pubTimer = setTimeout(tryPublish, 1600);
+  setStatus(art ? 'pending' : 'local');
+}
+function tryPublish(){
+  if(!dirty) return;
+  if(!art || readOnly){ setStatus(readOnly?'readonly':'local'); return; }
+  if(document.querySelector('.backdrop')){ clearTimeout(pubTimer); pubTimer = setTimeout(tryPublish, 1600); return; }
+  if(busy) return;
+  busy = true; setStatus('saving'); saveUi();
+  art.publish(buildDoc()).then(function(){ dirty=false; setStatus('saved'); })
+  .catch(function(e){
+    var code = (e && (e.code||e.name||e.message)) || '';
+    if(/not_granted|not_writer/.test(code)){ readOnly = true; setStatus('readonly'); }
+    else if(/conflict/.test(code)){ setStatus('saving'); }
+    else setStatus('failed');
+  }).then(function(){ busy=false; });
+}
+function setStatus(s){ statusText = s; var el = document.getElementById('status'); if(el) el.innerHTML = statusHtml(); }
+function statusHtml(){
+  if(!(window.claude && typeof window.claude.use==='function')) return '';
+  switch(statusText){
+    case 'pending': return '変更あり';
+    case 'saving': return '保存中…';
+    case 'saved': return '保存しました';
+    case 'local': return 'この端末に保存';
+    case 'readonly': return '閲覧のみ';
+    case 'failed': return '保存できませんでした <button data-act="retry">もう一度</button>';
+    case 'unsaved': return '未保存の変更 <button data-act="retry">保存</button>';
+    default: return '';
+  }
+}
+document.addEventListener('visibilitychange', function(){ if(document.visibilityState==='hidden' && dirty) tryPublish(); });
+if(window.claude && typeof window.claude.use==='function'){
+  window.claude.use('artifact').then(function(a){ art = a; if(statusText==='local') setStatus(dirty?'unsaved':'idle'); }).catch(function(){});
+}
+
+/* ---------- photos (kept in this browser's IndexedDB) ---------- */
+var dbp = null, urlCache = {};
+function noop(){}
+function idb(){
+  if(!dbp) dbp = new Promise(function(res,rej){
+    try{ var r = indexedDB.open('wasurecho',1);
+      r.onupgradeneeded = function(){ r.result.createObjectStore('imgs'); };
+      r.onsuccess = function(){ res(r.result); }; r.onerror = function(){ rej(r.error); };
+    }catch(e){ rej(e); }
+  });
+  return dbp;
+}
+function imgOp(mode, fn){
+  return idb().then(function(db){ return new Promise(function(res,rej){
+    var tx = db.transaction('imgs',mode), rq = fn(tx.objectStore('imgs'));
+    tx.oncomplete = function(){ res(rq && rq.result); }; tx.onerror = tx.onabort = function(){ rej(tx.error); };
+  }); });
+}
+function imgPut(id,b){ return imgOp('readwrite',function(st){ return st.put(b,id); }); }
+function imgGet(id){ return imgOp('readonly',function(st){ return st.get(id); }); }
+function imgDel(id){ if(urlCache[id]){ URL.revokeObjectURL(urlCache[id]); delete urlCache[id]; } return imgOp('readwrite',function(st){ return st.delete(id); }).catch(noop); }
+function hydrateImgs(){
+  var els = document.querySelectorAll('img[data-img]:not([src])');
+  Array.prototype.forEach.call(els, function(el){
+    var id = el.getAttribute('data-img');
+    if(urlCache[id]){ el.src = urlCache[id]; return; }
+    imgGet(id).then(function(b){
+      if(!b){ el.style.display='none'; return; }
+      if(!urlCache[id]) urlCache[id] = URL.createObjectURL(b);
+      Array.prototype.forEach.call(document.querySelectorAll('img[data-img="'+id+'"]:not([src])'), function(x){ x.src = urlCache[id]; });
+    }).catch(function(){ el.style.display='none'; });
+  });
+}
+function imgTag(it, cls, zoom){ return it.img ? '<img class="'+cls+'" data-img="'+esc(it.img)+'"'+(zoom?' data-act="zoom"':'')+' alt="">' : ''; }
+function resizeImage(file){
+  return new Promise(function(res,rej){
+    var url = URL.createObjectURL(file), im = new Image();
+    im.onload = function(){
+      var w = im.naturalWidth, h = im.naturalHeight, r = Math.min(1, 1280/Math.max(w,h));
+      var c = document.createElement('canvas'); c.width = Math.max(1,Math.round(w*r)); c.height = Math.max(1,Math.round(h*r));
+      var g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0,0,c.width,c.height); g.drawImage(im,0,0,c.width,c.height);
+      URL.revokeObjectURL(url);
+      c.toBlob(function(b){ b ? res(b) : rej(new Error('blob')); }, 'image/jpeg', 0.82);
+    };
+    im.onerror = function(){ URL.revokeObjectURL(url); rej(new Error('load')); };
+    im.src = url;
+  });
+}
+function openViewer(id){
+  if(!urlCache[id]) return;
+  document.body.insertAdjacentHTML('beforeend','<div class="backdrop viewer" data-act="closeViewer" role="dialog" aria-label="写真"><img src="'+urlCache[id]+'" alt="添付した写真"></div>');
+}
+
+/* ---------- backup: export / import ---------- */
+function blobToDataURL(b){ return new Promise(function(res,rej){ var r = new FileReader(); r.onload = function(){ res(r.result); }; r.onerror = rej; r.readAsDataURL(b); }); }
+function dataURLToBlob(u){
+  var m = /^data:([^;,]+)?(;base64)?,(.*)$/.exec(u); if(!m) throw new Error('bad');
+  var bin = m[2] ? atob(m[3]) : decodeURIComponent(m[3]), arr = new Uint8Array(bin.length);
+  for(var i=0;i<bin.length;i++) arr[i] = bin.charCodeAt(i);
+  return new Blob([arr], {type: m[1]||'image/jpeg'});
+}
+function pad(n){ return (n<10?'0':'')+n; }
+function exportData(){
+  var withImg = state.items.filter(function(i){ return i.img; });
+  var images = {};
+  setBackupMsg('書き出し中…');
+  Promise.all(withImg.map(function(it){
+    return imgGet(it.img).then(function(b){ if(b) return blobToDataURL(b).then(function(u){ images[it.img] = u; }); }).catch(noop);
+  })).then(function(){
+    var d = new Date(), name = 'wasle-'+d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'.json';
+    var payload = JSON.stringify({app:'wasurecho', v:1, exportedAt:d.toISOString(), items:state.items, images:images});
+    var file = new Blob([payload], {type:'application/json'});
+    var done = function(){
+      try{ localStorage.setItem(LS+'-exported', String(Date.now())); }catch(e){}
+      setBackupMsg('書き出しました（メモ'+state.items.length+'件・写真'+Object.keys(images).length+'枚）');
+    };
+    var fallback = function(){
+      var url = URL.createObjectURL(file), a = document.createElement('a');
+      a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 4000); done();
+    };
+    try{
+      var f = new File([file], name, {type:'application/json'});
+      if(navigator.canShare && navigator.canShare({files:[f]}) && /iPhone|iPad|Android/i.test(navigator.userAgent)){
+        navigator.share({files:[f], title:'wasle のバックアップ'}).then(done).catch(function(e){ if(e && e.name==='AbortError') setBackupMsg(''); else fallback(); });
+        return;
+      }
+    }catch(e){}
+    fallback();
+  });
+}
+var imp = null;
+function readImport(file){
+  var r = new FileReader();
+  r.onload = function(){
+    try{
+      var d = JSON.parse(r.result);
+      if(!d || d.app!=='wasurecho' || !Array.isArray(d.items)) throw new Error('not');
+      imp = d; drawImport();
+    }catch(e){ setBackupMsg('wasle のバックアップファイルではないようです。書き出したファイルを選んでください。'); }
+  };
+  r.onerror = function(){ setBackupMsg('ファイルを読み込めませんでした。'); };
+  r.readAsText(file);
+}
+function drawImport(){
+  closeSheet();
+  var have = {}; state.items.forEach(function(i){ have[i.id]=1; });
+  var fresh = imp.items.filter(function(i){ return !have[i.id]; }).length;
+  var when = imp.exportedAt ? new Date(imp.exportedAt) : null;
+  var html = '<div class="backdrop" data-act="closeBg"><div class="sheet" role="dialog" aria-label="読み込む"><h2>バックアップを読み込む<button class="x" data-act="close" aria-label="閉じる">×</button></h2>'
+    + '<div class="imp-sum">メモ '+imp.items.length+'件・写真 '+Object.keys(imp.images||{}).length+'枚'+(when?'<br><span class="hint">'+when.getFullYear()+'年'+(when.getMonth()+1)+'月'+when.getDate()+'日 '+pad(when.getHours())+':'+pad(when.getMinutes())+' に書き出したもの</span>':'')+'</div>'
+    + '<div class="imp-choices">'
+    + '<button data-act="impMerge"><b>今のメモに足す</b><span>この端末にないメモ'+fresh+'件を追加します。今あるメモはそのままです。</span></button>'
+    + '<button class="warn" data-act="impReplace"><b>まるごと置き換える</b><span>この端末のメモ'+state.items.length+'件を消して、バックアップの内容にします。</span></button>'
+    + '</div></div></div>';
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+function applyImport(replace){
+  var d = imp, imgs = d.images || {}, have = {};
+  state.items.forEach(function(i){ have[i.id]=1; });
+  var incoming = replace ? d.items : d.items.filter(function(i){ return !have[i.id]; });
+  var need = {}; incoming.forEach(function(i){ if(i.img && imgs[i.img]) need[i.img]=1; });
+  var oldImgs = replace ? state.items.filter(function(i){ return i.img; }).map(function(i){ return i.img; }) : [];
+  var keep = {}; Object.keys(need).forEach(function(k){ keep[k]=1; });
+  Promise.all(Object.keys(need).map(function(id){ return imgPut(id, dataURLToBlob(imgs[id])); })).then(function(){
+    oldImgs.forEach(function(id){ if(!keep[id]) imgDel(id); });
+    incoming.forEach(function(i){ if(i.img && !imgs[i.img]) delete i.img; });
+    state.items = replace ? incoming : state.items.concat(incoming);
+    imp = null; ui.filter = 'all'; ui.q = ''; closeSheet(); commit();
+    setBackupMsg('読み込みました（'+incoming.length+'件）');
+  }).catch(function(){ closeSheet(); setBackupMsg('写真を保存できず、読み込みを中止しました。'); });
+}
+var backupMsg = '';
+function setBackupMsg(m){ backupMsg = m; var el = document.getElementById('bmsg'); if(el) el.textContent = m || lastExportText(); }
+function lastExportText(){
+  var t = 0; try{ t = +localStorage.getItem(LS+'-exported') || 0; }catch(e){}
+  if(!t) return 'まだ書き出していません。';
+  var d = new Date(t); return '前回の書き出し：'+(d.getMonth()+1)+'月'+d.getDate()+'日';
+}
+
+/* ---------- render ---------- */
+function todaysLesson(){
+  var ls = state.items.filter(function(i){return i.kind==='lesson';});
+  if(!ls.length) return null;
+  var d = new Date(), seed = d.getFullYear()*372 + d.getMonth()*31 + d.getDate();
+  return ls[seed % ls.length];
+}
+function matches(it, q){
+  if(!q) return true;
+  var hay = [it.right,it.wrong,it.note,it.q,it.a,it.word,it.yomi,it.place,it.text].join(' ');
+  if(it.todos) hay += it.todos.map(function(t){return t.t;}).join(' ');
+  return hay.toLowerCase().indexOf(q.toLowerCase())>=0;
+}
+function cardHtml(it, compact){
+  var k = KINDS[it.kind], top = '<div class="card-top"><span class="tag">'+k.long+'</span>'
+    + (isWeak(it)?'<span class="chip weak">苦手</span>':'')
+    + (it.sample?'<span class="chip sample">見本</span>':'')
+    + '<button class="more" data-act="edit" data-id="'+it.id+'" aria-label="編集">編集</button></div>';
+  var b = '';
+  if(it.kind==='pair'){
+    b = '<div class="pair-row ok"><span class="mk">○</span><span class="w">'+esc(it.right)+'</span></div>'
+      + '<div class="pair-row ng"><span class="mk">✕</span><span class="w">'+esc(it.wrong)+'</span></div>'
+      + (it.note?'<div class="note">'+esc(it.note)+'</div>':'');
+  }else if(it.kind==='fact'){
+    b = '<div class="fact-q">'+esc(it.q)+'</div><div class="fact-a">'+esc(it.a)+'</div>';
+  }else if(it.kind==='kanji'){
+    var sh = !!ui.shown[it.id];
+    b = '<div class="kanji-row"><span class="kanji-word">'+esc(it.word)+'</span>'
+      + '<button class="yomi'+(sh?' shown':'')+'" data-act="yomi" data-id="'+it.id+'">'+(sh?esc(it.yomi):'読みを見る')+'</button></div>'
+      + (sh && it.note?'<div class="note">'+esc(it.note)+'</div>':'');
+  }else if(it.kind==='next'){
+    var anyDone = it.todos.some(function(t){return t.d;});
+    b = '<div class="next-title">次の'+esc(it.place)+'で</div><ul class="todo">'
+      + it.todos.map(function(t,ix){
+          if(compact && ix>=3) return '';
+          var cid = 'td-'+it.id+'-'+ix;
+          return '<li class="'+(t.d?'done':'')+'"><label for="'+cid+'"><input type="checkbox" id="'+cid+'" data-act="todo" data-id="'+it.id+'" data-ix="'+ix+'"'+(t.d?' checked':'')+'><span>'+esc(t.t)+'</span></label></li>';
+        }).join('') + '</ul>'
+      + (compact && it.todos.length>3 ? '<div class="more-todos">ほか'+(it.todos.length-3)+'件</div>' : '')
+      + (anyDone?'<button class="reset" data-act="reset" data-id="'+it.id+'">チェックを全部外す</button>':'');
+  }else if(it.kind==='lesson'){
+    b = '<div class="lesson-text">'+esc(it.text)+'</div>'+(it.note?'<div class="note">'+esc(it.note)+'</div>':'');
+  }
+  return '<article class="card k-'+it.kind+'" data-drag data-id="'+it.id+'">'+top+b+imgTag(it,'memo-img',true)+'</article>';
+}
+function rowHtml(it){
+  var main='', sub='';
+  if(it.kind==='pair'){ main = '○ '+esc(it.right)+'<span class="ng">'+esc(it.wrong)+'</span>'; }
+  else if(it.kind==='fact'){ main = esc(it.q); sub = esc(it.a); }
+  else if(it.kind==='kanji'){ main = '<span class="kj">'+esc(it.word)+'</span>'; sub = ui.shown[it.id] ? esc(it.yomi) : ''; }
+  else if(it.kind==='next'){ var dn = it.todos.filter(function(t){return t.d;}).length; main = '次の'+esc(it.place)+'で'; sub = dn ? dn+'/'+it.todos.length+' 済' : it.todos.length+'件'; }
+  else if(it.kind==='lesson'){ main = esc(it.text); }
+  if(ui.open[it.id]) return '<div class="row-open k-'+it.kind+'" data-drag data-id="'+it.id+'"><button class="row" data-act="row" data-id="'+it.id+'" aria-expanded="true"><span class="dot"></span><span class="main">'+main+'</span><span class="sub">閉じる</span></button>'+cardHtml(it)+'</div>';
+  return '<button class="row k-'+it.kind+'" data-act="row" data-drag data-id="'+it.id+'" aria-expanded="false"><span class="dot"></span><span class="main">'+main+'</span>'
+    + (isWeak(it)?'<span class="chip weak">苦手</span>':'')
+    + (sub?'<span class="sub">'+sub+'</span>':'')+imgTag(it,'row-thumb',false)+'</button>';
+}
+var ICONS = {
+  card:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="5" rx="1.2"/><rect x="2" y="9" width="12" height="5" rx="1.2"/></svg>',
+  tile:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>',
+  row:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 3.5h12M2 8h12M2 12.5h12"/></svg>'
+};
+function masonry(){
+  var m = document.querySelector('.list.tile'); if(!m) return;
+  var cards = Array.prototype.slice.call(m.children);
+  var a = document.createElement('div'), b = document.createElement('div');
+  a.className = b.className = 'col'; m.innerHTML = ''; m.appendChild(a); m.appendChild(b);
+  cards.forEach(function(el){ (a.offsetHeight <= b.offsetHeight ? a : b).appendChild(el); });
+}
+var relayT = null, lastW = window.innerWidth;
+function relayout(force){
+  if(ui.view!=='tile' || document.querySelector('.backdrop')) return;
+  if(force!==true && window.innerWidth===lastW) return;   // iOS fires resize while scrolling (toolbar shows/hides): only re-layout when the width really changes
+  lastW = window.innerWidth; clearTimeout(relayT); relayT = setTimeout(render, 150);
+}
+window.addEventListener('resize', relayout);
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ relayout(true); });
+var VIEW_NAMES = {card:'カード表示', tile:'タイル表示', row:'行表示'};
+function render(){
+  var app = document.getElementById('app');
+  var counts = {all:state.items.length};
+  ORDER.forEach(function(k){ counts[k] = state.items.filter(function(i){return i.kind===k;}).length; });
+  var weakN = state.items.filter(isWeak).length;
+  var list = state.items.filter(function(it){
+    if(ui.filter==='weak' && !isWeak(it)) return false;
+    if(ui.filter!=='all' && ui.filter!=='weak' && it.kind!==ui.filter) return false;
+    return matches(it, ui.q);
+  }).slice().reverse();
+  ui.visible = list.map(function(it){ return it.id; });
+  var tl = todaysLesson();
+  var hasSample = state.items.some(function(i){return i.sample;});
+
+  var tabs = '<button class="tab" data-act="filter" data-f="all" aria-pressed="'+(ui.filter==='all')+'">すべて <span class="n">'+counts.all+'</span></button>'
+    + ORDER.map(function(k){ return '<button class="tab" data-act="filter" data-f="'+k+'" style="--c:var(--k-'+k+')" aria-pressed="'+(ui.filter===k)+'"><span class="dot"></span>'+KINDS[k].label+' <span class="n">'+counts[k]+'</span></button>'; }).join('')
+    + (weakN?'<button class="tab" data-act="filter" data-f="weak" style="--c:var(--bad)" aria-pressed="'+(ui.filter==='weak')+'"><span class="dot"></span>苦手 <span class="n">'+weakN+'</span></button>':'');
+
+  var active = document.activeElement && document.activeElement.id==='q';
+  app.innerHTML = '<div class="wrap">'
+    + '<header><div class="brand"><h1>wasle</h1><p>何度でも忘れる、ちょっとしたことの置き場所</p></div>'
+    + '<button class="practice-btn" data-act="practice">腕試し</button></header>'
+    + (tl ? '<section class="today"><small>今日のひとこと</small><p>'+esc(tl.text)+'</p></section>'
+          : '<section class="today"><small>今日のひとこと</small><p>教訓をひとつ書いておくと、ここに日替わりで出ます。</p></section>')
+    + '<div class="controls"><div class="bar-row"><input class="search" id="q" type="search" placeholder="さがす（例：美容院）" value="'+esc(ui.q)+'" aria-label="メモをさがす">'
+    + '<div class="views" role="group" aria-label="表示の切り替え">'+['card','tile','row'].map(function(v){ return '<button data-act="view" data-v="'+v+'" aria-pressed="'+(ui.view===v)+'" aria-label="'+VIEW_NAMES[v]+'" title="'+VIEW_NAMES[v]+'">'+ICONS[v]+'</button>'; }).join('')+'</div></div>'
+    + '<nav class="tabs" aria-label="種類で絞り込む">'+tabs+'</nav></div>'
+    + (hasSample ? '<div class="sample-note"><span>いま入っているのは見本です。長押しで並べかえられます。</span><button data-act="clearSamples">'+(ui.confirmSamples?'本当に消す':'見本を消す')+'</button></div>' : '')
+    + '<main class="list'+(list.length && ui.view==='tile'?' tile':'')+(list.length && ui.view==='row'?' rows':'')+'">'+(list.length ? list.map(function(it){ return ui.view==='row' ? rowHtml(it) : cardHtml(it, ui.view==='tile'); }).join('') : '<div class="empty">'+(ui.q?'見つかりませんでした。':'まだ何もありません。<br>右下の「メモする」から書いてみてください。')+'</div>')+'</main>'
+    + '<section class="backup"><h3>画面の明るさ</h3>'
+    + '<div class="themes" role="group" aria-label="画面の明るさ">'+[['auto','自動'],['light','ライト'],['dark','ダーク']].map(function(o){ return '<button data-act="theme" data-t="'+o[0]+'" aria-pressed="'+(ui.theme===o[0])+'">'+o[1]+'</button>'; }).join('')+'</div>'
+    + '<p>「自動」はスマホの設定に合わせます。</p></section>'
+    + '<section class="backup"><h3>バックアップ・ほかの端末へ</h3>'
+    + '<p>書き出したファイルを別の端末で読み込むと、同じメモと写真が入ります。</p>'
+    + '<div class="btns"><button data-act="export">書き出す</button><label for="f-import">読み込む</label><input type="file" id="f-import" accept=".json,application/json" hidden></div>'
+    + '<p id="bmsg" aria-live="polite">'+esc(backupMsg || lastExportText())+'</p></section>'
+    + '</div>'
+    + '<div class="status" id="status" aria-live="polite">'+statusHtml()+'</div>'
+    + '<button class="fab" data-act="add">＋ メモする</button>';
+  masonry();
+  if(ui.dragId) Array.prototype.forEach.call(document.querySelectorAll('#app [data-drag][data-id="'+ui.dragId+'"]'), function(el){ el.classList.add('drag-src'); });
+  hydrateImgs();
+  if(active){ var q = document.getElementById('q'); q.focus(); q.setSelectionRange(q.value.length,q.value.length); }
+}
+
+/* ---------- editor ---------- */
+function fieldsFor(kind, it){
+  it = it || {};
+  function inp(id,label,val,ph){ return '<div class="field"><label for="'+id+'">'+label+'</label><input id="'+id+'" value="'+esc(val||'')+'" placeholder="'+esc(ph||'')+'"></div>'; }
+  function ta(id,label,val,ph,hint){ return '<div class="field"><label for="'+id+'">'+label+'</label><textarea id="'+id+'" placeholder="'+esc(ph||'')+'">'+esc(val||'')+'</textarea>'+(hint?'<span class="hint">'+hint+'</span>':'')+'</div>'; }
+  if(kind==='pair') return inp('f-right','正しいほう ○',it.right,'例：シミュレーション')+inp('f-wrong','間違えるほう ✕',it.wrong,'例：シュミレーション')+inp('f-note','覚え方（任意）',it.note,'例：simulation の「シ」');
+  if(kind==='fact') return inp('f-q','いつも忘れること',it.q,'例：大さじ1は何ml？')+ta('f-a','答え',it.a,'例：15ml（小さじは5ml）');
+  if(kind==='kanji') return inp('f-word','漢字',it.word,'例：長閑')+inp('f-yomi','読み',it.yomi,'例：のどか')+inp('f-note','意味・使い方（任意）',it.note,'');
+  if(kind==='next') return inp('f-place','次の〇〇で',it.place,'例：美容院、歯医者、帰省')+ta('f-todos','やること・言うこと',(it.todos||[]).map(function(t){return t.t;}).join('\n'),'1行にひとつずつ','改行で区切ると、チェックリストになります');
+  if(kind==='lesson') return ta('f-text','教訓',it.text,'例：迷ったら、ひと晩寝てから決める。')+inp('f-note','きっかけ（任意）',it.note,'例：2026年秋、転職の相談で');
+  return '';
+}
+var edit = {kind:'pair', id:null, confirmDel:false, pendingImg:null, pendingURL:null, removeImg:false};
+function openEditor(id){
+  var it = id ? byId(id) : null;
+  if(edit.pendingURL) URL.revokeObjectURL(edit.pendingURL);
+  edit = {kind: it?it.kind:(ORDER.indexOf(ui.filter)>=0?ui.filter:'pair'), id: id||null, confirmDel:false, pendingImg:null, pendingURL:null, removeImg:false};
+  drawEditor(it);
+}
+function photoHtml(){
+  var it = edit.id ? byId(edit.id) : null, prev = '';
+  if(edit.pendingURL) prev = '<img src="'+edit.pendingURL+'" alt="選んだ写真">';
+  else if(it && it.img && !edit.removeImg) prev = '<img data-img="'+esc(it.img)+'" alt="付いている写真">';
+  return prev + '<div class="photo-actions"><label class="photo-btn'+(prev?' solid':'')+'" for="f-img">'+(prev?'写真を変える':'＋ 写真を付ける')+'</label>'
+    + (prev?'<button type="button" class="photo-btn solid" data-act="photoRemove">写真を外す</button>':'')+'</div>'
+    + '<input type="file" id="f-img" accept="image/*" hidden>';
+}
+function refreshPhoto(){ var el = document.getElementById('photo'); if(el){ el.innerHTML = photoHtml(); hydrateImgs(); } }
+function drawEditor(it){
+  closeSheet();
+  var kinds = edit.id ? '' : '<div class="kinds" role="group" aria-label="種類">'+ORDER.map(function(k){
+    return '<button class="kind" style="--c:var(--k-'+k+')" data-act="kind" data-k="'+k+'" aria-pressed="'+(edit.kind===k)+'"><b>'+KINDS[k].long+'</b><span>'+KINDS[k].desc+'</span></button>'; }).join('')+'</div>';
+  var html = '<div class="backdrop" data-act="closeBg"><form class="sheet" id="editor" role="dialog" aria-label="メモ">'
+    + '<h2>'+(edit.id?'「'+KINDS[edit.kind].long+'」を編集':'メモする')+'<button type="button" class="x" data-act="close" aria-label="閉じる">×</button></h2>'
+    + kinds + '<div id="fields">'+fieldsFor(edit.kind, it)+'</div>'
+    + '<div class="field"><span class="flabel">写真（任意）</span><div class="photo" id="photo">'+photoHtml()+'</div></div>'
+    + '<div class="err" id="err"></div>'
+    + '<div class="actions">'+(edit.id?'<button type="button" class="danger" data-act="del">'+(edit.confirmDel?'本当に削除する':'削除')+'</button>':'<span></span>')
+    + '<button type="submit" class="primary">'+(edit.id?'保存':'追加')+'</button></div></form></div>';
+  document.body.insertAdjacentHTML('beforeend', html);
+  hydrateImgs();
+  var first = document.querySelector('#fields input, #fields textarea'); if(first && !edit.id) first.focus();
+}
+function val(id){ var el = document.getElementById(id); return el ? el.value.trim() : ''; }
+function saveEditor(){
+  var k = edit.kind, o = edit.id ? byId(edit.id) : {id:uid(), kind:k, hit:0, miss:0};
+  var err = '';
+  if(k==='pair'){ o.right=val('f-right'); o.wrong=val('f-wrong'); o.note=val('f-note'); if(!o.right||!o.wrong) err='○と✕の両方を書いてください。'; }
+  if(k==='fact'){ o.q=val('f-q'); o.a=val('f-a'); if(!o.q||!o.a) err='忘れることと答えの両方を書いてください。'; }
+  if(k==='kanji'){ o.word=val('f-word'); o.yomi=val('f-yomi'); o.note=val('f-note'); if(!o.word||!o.yomi) err='漢字と読みの両方を書いてください。'; }
+  if(k==='next'){ o.place=val('f-place'); var old = o.todos||[];
+    o.todos = val('f-todos').split('\n').map(function(s){return s.trim();}).filter(Boolean).map(function(t){ var p = old.filter(function(x){return x.t===t;})[0]; return {t:t, d:p?p.d:false}; });
+    if(!o.place||!o.todos.length) err='「次の〇〇で」とやることを1つ以上書いてください。'; }
+  if(k==='lesson'){ o.text=val('f-text'); o.note=val('f-note'); if(!o.text) err='教訓を書いてください。'; }
+  if(err){ document.getElementById('err').textContent = err; return; }
+  var oldImg = o.img, isNew = !edit.id, p = Promise.resolve();
+  if(edit.pendingImg){
+    var nid = 'img-'+uid(), url = edit.pendingURL;
+    p = imgPut(nid, edit.pendingImg).then(function(){ o.img = nid; urlCache[nid] = url; edit.pendingURL = null; if(oldImg) imgDel(oldImg); });
+  }else if(edit.removeImg && oldImg){ delete o.img; imgDel(oldImg); }
+  p.then(function(){
+    if(o.sample) delete o.sample;
+    if(isNew){ state.items.push(o); if(ui.filter!=='all' && ui.filter!==k){ ui.filter='all'; } ui.q=''; }
+    closeSheet(); commit();
+  }).catch(function(){
+    var e = document.getElementById('err'); if(e) e.textContent = 'この開き方では写真を保存できませんでした。写真を外すと保存できます。';
+  });
+}
+function closeSheet(){ var b = document.querySelector('.backdrop'); if(b) b.remove(); }
+
+/* ---------- practice ---------- */
+var pr = null;
+function startPractice(){
+  var pool = state.items.filter(function(i){return i.kind==='pair'||i.kind==='kanji'||i.kind==='fact';});
+  if(!pool.length){ drawPracticeEmpty(); return; }
+  pool = pool.map(function(i){ return {i:i, w:(i.miss||0)*1.5 - Math.min(i.hit||0,4)*0.5 + Math.random()*2}; })
+    .sort(function(a,b){return b.w-a.w;}).slice(0,8).map(function(x){return x.i;});
+  for(var j=pool.length-1;j>0;j--){ var r=Math.floor(Math.random()*(j+1)); var t=pool[j]; pool[j]=pool[r]; pool[r]=t; }
+  pr = {list:pool, ix:0, ok:0, missed:[], phase:'ask', changed:false, order:null};
+  drawPractice();
+}
+function drawPracticeEmpty(){
+  closeSheet();
+  document.body.insertAdjacentHTML('beforeend','<div class="backdrop" data-act="closeBg"><div class="sheet" role="dialog" aria-label="腕試し"><h2>腕試し<button class="x" data-act="close" aria-label="閉じる">×</button></h2><p>二択・覚える・読みのメモから出題します。まずはひとつ書いてみてください。</p></div></div>');
+}
+function drawPractice(){
+  closeSheet();
+  var body = '';
+  if(pr.ix >= pr.list.length){
+    body = '<div class="score">'+pr.list.length+'問中 '+pr.ok+'問</div>'
+      + (pr.missed.length ? '<p>もう一度見ておきたいもの</p><ul class="weaklist">'+pr.missed.map(function(it){return '<li>'+esc(label(it))+'</li>';}).join('')+'</ul>' : '<p style="text-align:center">全部できました。</p>')
+      + '<div class="two"><button data-act="close">閉じる</button><button data-act="practice">もう一回</button></div>';
+  }else{
+    var it = pr.list[pr.ix];
+    body = '<div class="q-meta">'+(pr.ix+1)+' / '+pr.list.length+'　'+KINDS[it.kind].long+'</div><div class="bar"><i style="width:'+(pr.ix/pr.list.length*100)+'%"></i></div>';
+    if(it.kind==='pair'){
+      if(!pr.order) pr.order = Math.random()<.5 ? ['right','wrong'] : ['wrong','right'];
+      body += '<div class="q-ask">正しいのはどっち？</div><div class="choices">'
+        + pr.order.map(function(s){
+            var cls = '';
+            if(pr.phase!=='ask'){ if(s==='right') cls=' right'; else if(pr.picked==='wrong') cls=' wrong'; }
+            return '<button class="choice'+cls+'" data-act="pick" data-s="'+s+'"'+(pr.phase!=='ask'?' disabled':'')+'>'+esc(it[s])+'</button>';
+          }).join('')+'</div>';
+      if(pr.phase!=='ask'){
+        var good = pr.picked==='right';
+        body += '<div class="verdict '+(good?'g':'b')+'">'+(good?'正解':'ざんねん、正しくは「'+esc(it.right)+'」')+'</div>'+(it.note?'<div class="note">'+esc(it.note)+'</div>':'')+imgTag(it,'q-img',false)
+          + '<div class="two"><span></span><button data-act="nextQ">次へ</button></div>';
+      }
+    }else{
+      body += it.kind==='kanji' ? '<div class="q-ask">なんと読む？</div><div class="q-big">'+esc(it.word)+'</div>'
+                                : '<div class="q-ask">覚えてる？</div><div class="q-text">'+esc(it.q)+'</div>';
+      if(pr.phase==='ask') body += '<div class="two"><span></span><button data-act="show">'+(it.kind==='kanji'?'読みを見る':'答えを見る')+'</button></div>';
+      else body += '<div class="reveal">'+esc(it.kind==='kanji'?it.yomi:it.a)+'</div>'+(it.kind==='kanji'&&it.note?'<div class="note" style="text-align:center">'+esc(it.note)+'</div>':'')+imgTag(it,'q-img',false)
+        + '<div class="two"><button class="b" data-act="self" data-r="0">'+(it.kind==='kanji'?'読めなかった':'忘れてた')+'</button><button class="g" data-act="self" data-r="1">'+(it.kind==='kanji'?'読めた':'覚えてた')+'</button></div>';
+    }
+  }
+  document.body.insertAdjacentHTML('beforeend','<div class="backdrop" data-act="closeBg"><div class="sheet" role="dialog" aria-label="腕試し"><h2>腕試し<button class="x" data-act="close" aria-label="閉じる">×</button></h2>'+body+'</div></div>');
+  hydrateImgs();
+}
+function label(it){ return it.kind==='pair' ? '○'+it.right+'　✕'+it.wrong : it.kind==='kanji' ? it.word+'（'+it.yomi+'）' : it.q+' → '+it.a; }
+function record(good){
+  var it = pr.list[pr.ix];
+  if(good){ it.hit=(it.hit||0)+1; pr.ok++; } else { it.miss=(it.miss||0)+1; pr.missed.push(it); }
+  pr.changed = true;
+}
+function endPractice(){ var ch = pr && pr.changed; pr = null; closeSheet(); if(ch) commit(); }
+
+/* ---------- drag to reorder (long press, then move) ---------- */
+var dg = null, swallowClick = false;
+function dragStart(el, x, y){
+  var id = el.getAttribute('data-id'), r = el.getBoundingClientRect();
+  var g = el.cloneNode(true); g.classList.add('drag-ghost'); g.classList.remove('drag-src');
+  g.style.width = r.width+'px'; g.style.left = r.left+'px'; g.style.top = r.top+'px';
+  Array.prototype.forEach.call(g.querySelectorAll('img[data-img]'), function(im){ var u = urlCache[im.getAttribute('data-img')]; if(u) im.src = u; });
+  document.body.appendChild(g);
+  dg = {id:id, ghost:g, dx:x-r.left, dy:y-r.top, x:x, y:y, last:0, raf:0};
+  ui.dragId = id; document.body.classList.add('dragging');
+  el.classList.add('drag-src');
+  if(navigator.vibrate) try{ navigator.vibrate(12); }catch(e){}
+  dg.raf = requestAnimationFrame(autoScroll);
+}
+function dragMove(x, y){
+  if(!dg) return;
+  dg.x = x; dg.y = y;
+  dg.ghost.style.left = (x-dg.dx)+'px'; dg.ghost.style.top = (y-dg.dy)+'px';
+  var now = Date.now(); if(now - dg.last < 90) return;
+  var under = document.elementFromPoint(x, y), tgt = under && under.closest('#app [data-drag]');
+  if(!tgt) return;
+  var tid = tgt.getAttribute('data-id'); if(!tid || tid===dg.id) return;
+  dg.last = now;
+  moveItem(dg.id, tid);
+  render();
+}
+function moveItem(srcId, tgtId){
+  var vis = (ui.visible||[]).slice(), from = vis.indexOf(srcId), to = vis.indexOf(tgtId);
+  if(from<0 || to<0) return;
+  vis.splice(from,1); vis.splice(to,0,srcId);
+  var byIdMap = {}, slots = [];
+  state.items.forEach(function(it,ix){ byIdMap[it.id]=it; if(vis.indexOf(it.id)>=0) slots.push(ix); });
+  var order = vis.slice().reverse();        // list shows newest first, so the stored order is the reverse
+  slots.forEach(function(ix,k){ state.items[ix] = byIdMap[order[k]]; });
+}
+function dragEnd(){
+  if(!dg) return;
+  cancelAnimationFrame(dg.raf); dg.ghost.remove();
+  dg = null; ui.dragId = null; document.body.classList.remove('dragging');
+  swallowClick = true; setTimeout(function(){ swallowClick = false; }, 80);
+  commit();
+}
+function autoScroll(){
+  if(!dg) return;
+  var edge = 90, h = window.innerHeight, v = 0;
+  if(dg.y < edge) v = -Math.ceil((edge-dg.y)/6); else if(dg.y > h-edge) v = Math.ceil((dg.y-(h-edge))/6);
+  if(v){ window.scrollBy(0, v); dragMove(dg.x, dg.y); }
+  dg.raf = requestAnimationFrame(autoScroll);
+}
+var press = null;
+function pressStart(e, x, y){
+  if(dg || document.querySelector('.backdrop')) return;
+  var el = e.target.closest('#app [data-drag]'); if(!el) return;
+  var b = e.target.closest('button, input, textarea, label, a');
+  if(b && !b.classList.contains('row')) return;
+  press = {el:el, x:x, y:y, t:setTimeout(function(){ if(press){ dragStart(press.el, press.x, press.y); press = null; } }, 380)};
+}
+function pressMove(x, y){
+  if(press && (Math.abs(x-press.x)>8 || Math.abs(y-press.y)>8)){ clearTimeout(press.t); press = null; }
+  if(dg) dragMove(x, y);
+}
+function pressEnd(){ if(press){ clearTimeout(press.t); press = null; } if(dg) dragEnd(); }
+/* iOS keeps sending a touch's move/end events to the element it started on, even after that element
+   leaves the page (the list is redrawn while dragging), and they no longer reach document.
+   So listen on that element itself. */
+var touchNode = null;
+function onTouchMove(e){ var t = e.touches[0]; if(!t) return; if(dg && e.cancelable) e.preventDefault(); pressMove(t.clientX, t.clientY); }
+function onTouchEnd(){ unbindTouch(); pressEnd(); }
+function unbindTouch(){
+  if(!touchNode) return;
+  touchNode.removeEventListener('touchmove', onTouchMove); touchNode.removeEventListener('touchend', onTouchEnd); touchNode.removeEventListener('touchcancel', onTouchEnd);
+  touchNode = null;
+}
+document.addEventListener('touchstart', function(e){
+  if(dg){ unbindTouch(); dragEnd(); return; }            // safety: a new touch always drops a stuck card
+  if(e.touches.length!==1) return;
+  unbindTouch();
+  touchNode = e.target;
+  touchNode.addEventListener('touchmove', onTouchMove, {passive:false});
+  touchNode.addEventListener('touchend', onTouchEnd);
+  touchNode.addEventListener('touchcancel', onTouchEnd);
+  pressStart(e, e.touches[0].clientX, e.touches[0].clientY);
+}, {passive:true});
+document.addEventListener('touchmove', function(e){ if(dg && e.cancelable) e.preventDefault(); }, {passive:false});
+document.addEventListener('touchend', function(){ if(!touchNode) pressEnd(); });
+document.addEventListener('visibilitychange', function(){ if(document.visibilityState==='hidden'){ unbindTouch(); pressEnd(); } });
+document.addEventListener('mousedown', function(e){ if(e.button===0) pressStart(e, e.clientX, e.clientY); });
+document.addEventListener('mousemove', function(e){ pressMove(e.clientX, e.clientY); });
+document.addEventListener('mouseup', pressEnd);
+document.addEventListener('contextmenu', function(e){ if(dg || press) e.preventDefault(); });
+document.addEventListener('click', function(e){ if(swallowClick){ e.stopPropagation(); e.preventDefault(); swallowClick = false; } }, true);
+
+/* ---------- events ---------- */
+document.addEventListener('click', function(e){
+  var t = e.target.closest('[data-act]'); if(!t) return;
+  var a = t.getAttribute('data-act'), id = t.getAttribute('data-id');
+  if(a==='theme'){ ui.theme = t.getAttribute('data-t'); try{ localStorage.setItem(LS+'-theme', ui.theme); }catch(err){} applyTheme(); render(); return; }
+  if(a==='export'){ exportData(); return; }
+  if(a==='impMerge'){ applyImport(false); return; }
+  if(a==='impReplace'){ if(t.getAttribute('data-sure')!=='1'){ t.setAttribute('data-sure','1'); t.querySelector('b').textContent = 'もう一度押すと置き換えます'; return; } applyImport(true); return; }
+  if(a==='closeViewer'){ t.remove(); return; }
+  if(a==='zoom'){ openViewer(t.getAttribute('data-img')); return; }
+  if(a==='photoRemove'){ if(edit.pendingURL) URL.revokeObjectURL(edit.pendingURL); edit.pendingImg=null; edit.pendingURL=null; edit.removeImg=true; refreshPhoto(); return; }
+  if(a==='closeBg'){ if(e.target!==t) return; a='close'; }
+  if(a==='close'){ if(pr) endPractice(); else closeSheet(); render(); return; }
+  if(a==='filter'){ ui.filter = t.getAttribute('data-f'); saveUi(); render(); return; }
+  if(a==='view'){ ui.view = t.getAttribute('data-v'); try{ localStorage.setItem(LS+'-view', ui.view); }catch(err){} render(); return; }
+  if(a==='row'){ ui.open[id] = !ui.open[id]; render(); return; }
+  if(a==='yomi'){ ui.shown[id] = !ui.shown[id]; render(); return; }
+  if(a==='todo'){ var it = byId(id); it.todos[+t.getAttribute('data-ix')].d = t.checked; commit(); return; }
+  if(a==='reset'){ byId(id).todos.forEach(function(x){x.d=false;}); commit(); return; }
+  if(a==='add'){ openEditor(null); return; }
+  if(a==='edit'){ openEditor(id); return; }
+  if(a==='kind'){ edit.kind = t.getAttribute('data-k'); drawEditor(null); return; }
+  if(a==='del'){ if(!edit.confirmDel){ edit.confirmDel=true; t.textContent='本当に削除する'; return; }
+    var gone = byId(edit.id); if(gone && gone.img) imgDel(gone.img);
+    state.items = state.items.filter(function(i){return i.id!==edit.id;}); closeSheet(); commit(); return; }
+  if(a==='clearSamples'){ if(!ui.confirmSamples){ ui.confirmSamples=true; render(); return; }
+    ui.confirmSamples=false; state.items = state.items.filter(function(i){return !i.sample;}); commit(); return; }
+  if(a==='practice'){ var ch = pr && pr.changed; startPractice(); if(ch && pr) pr.changed = true; else if(ch) commit(); return; }
+  if(a==='pick'){ pr.picked = t.getAttribute('data-s'); pr.phase='done'; record(pr.picked==='right'); drawPractice(); return; }
+  if(a==='nextQ'){ pr.ix++; pr.phase='ask'; pr.order=null; drawPractice(); return; }
+  if(a==='show'){ pr.phase='done'; drawPractice(); return; }
+  if(a==='self'){ record(t.getAttribute('data-r')==='1'); pr.ix++; pr.phase='ask'; drawPractice(); return; }
+  if(a==='retry'){ dirty = true; tryPublish(); return; }
+});
+document.addEventListener('change', function(e){
+  if(e.target.id==='f-import'){ if(e.target.files && e.target.files[0]) readImport(e.target.files[0]); e.target.value=''; return; }
+  if(e.target.id!=='f-img' || !e.target.files || !e.target.files[0]) return;
+  var errEl = document.getElementById('err');
+  resizeImage(e.target.files[0]).then(function(b){
+    if(edit.pendingURL) URL.revokeObjectURL(edit.pendingURL);
+    edit.pendingImg = b; edit.pendingURL = URL.createObjectURL(b); edit.removeImg = false; refreshPhoto();
+    if(errEl) errEl.textContent = '';
+  }).catch(function(){ if(errEl) errEl.textContent = 'この写真は読み込めませんでした。別の写真で試してください。'; });
+});
+document.addEventListener('submit', function(e){ if(e.target.id==='editor'){ e.preventDefault(); saveEditor(); } });
+document.addEventListener('input', function(e){ if(e.target.id==='q'){ ui.q = e.target.value; saveUi(); render(); } });
+document.addEventListener('keydown', function(e){ var vw = document.querySelector('.viewer'); if(e.key==='Escape' && vw){ vw.remove(); return; } if(e.key==='Escape' && document.querySelector('.backdrop')){ if(pr) endPractice(); else closeSheet(); render(); } });
+
+render();
+})();
+</script>
+</body>
+</html>
