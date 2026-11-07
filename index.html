@@ -587,17 +587,30 @@ function relayout(force){
 window.addEventListener('resize', relayout);
 if(document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ relayout(true); });
 var VIEW_NAMES = {card:'カード表示', tile:'タイル表示', row:'行表示'};
-function render(){
-  var app = document.getElementById('app');
-  var counts = {all:state.items.length};
-  ORDER.forEach(function(k){ counts[k] = state.items.filter(function(i){return i.kind===k;}).length; });
-  var weakN = state.items.filter(isWeak).length;
+function visibleItems(){
   var list = state.items.filter(function(it){
     if(ui.filter==='weak' && !isWeak(it)) return false;
     if(ui.filter!=='all' && ui.filter!=='weak' && it.kind!==ui.filter) return false;
     return matches(it, ui.q);
   }).slice().reverse();
   ui.visible = list.map(function(it){ return it.id; });
+  return list;
+}
+function listHtml(list){
+  return '<main class="list'+(list.length && ui.view==='tile'?' tile':'')+(list.length && ui.view==='row'?' rows':'')+'">'+(list.length ? list.map(function(it){ return ui.view==='row' ? rowHtml(it) : cardHtml(it, ui.view==='tile'); }).join('') : '<div class="empty">'+(ui.q?'見つかりませんでした。':'まだ何もありません。<br>右下の「メモする」から書いてみてください。')+'</div>')+'</main>';
+}
+/* Search typing: redraw only the list, never the search box (redrawing it breaks Japanese input on iOS) */
+function renderList(){
+  var m = document.querySelector('#app main.list'); if(!m){ render(); return; }
+  m.outerHTML = listHtml(visibleItems());
+  masonry(); hydrateImgs();
+}
+function render(){
+  var app = document.getElementById('app');
+  var counts = {all:state.items.length};
+  ORDER.forEach(function(k){ counts[k] = state.items.filter(function(i){return i.kind===k;}).length; });
+  var weakN = state.items.filter(isWeak).length;
+  var list = visibleItems();
   var tl = todaysLesson();
   var hasSample = state.items.some(function(i){return i.sample;});
 
@@ -615,7 +628,7 @@ function render(){
     + '<div class="views" role="group" aria-label="表示の切り替え">'+['card','tile','row'].map(function(v){ return '<button data-act="view" data-v="'+v+'" aria-pressed="'+(ui.view===v)+'" aria-label="'+VIEW_NAMES[v]+'" title="'+VIEW_NAMES[v]+'">'+ICONS[v]+'</button>'; }).join('')+'</div></div>'
     + '<nav class="tabs" aria-label="種類で絞り込む">'+tabs+'</nav></div>'
     + (hasSample ? '<div class="sample-note"><span>いま入っているのは見本です。長押しで並べかえられます。</span><button data-act="clearSamples">'+(ui.confirmSamples?'本当に消す':'見本を消す')+'</button></div>' : '')
-    + '<main class="list'+(list.length && ui.view==='tile'?' tile':'')+(list.length && ui.view==='row'?' rows':'')+'">'+(list.length ? list.map(function(it){ return ui.view==='row' ? rowHtml(it) : cardHtml(it, ui.view==='tile'); }).join('') : '<div class="empty">'+(ui.q?'見つかりませんでした。':'まだ何もありません。<br>右下の「メモする」から書いてみてください。')+'</div>')+'</main>'
+    + listHtml(list)
     + '<section class="backup"><h3>画面の明るさ</h3>'
     + '<div class="themes" role="group" aria-label="画面の明るさ">'+[['auto','自動'],['light','ライト'],['dark','ダーク']].map(function(o){ return '<button data-act="theme" data-t="'+o[0]+'" aria-pressed="'+(ui.theme===o[0])+'">'+o[1]+'</button>'; }).join('')+'</div>'
     + '<p>「自動」はスマホの設定に合わせます。</p></section>'
@@ -896,7 +909,7 @@ document.addEventListener('change', function(e){
   }).catch(function(){ if(errEl) errEl.textContent = 'この写真は読み込めませんでした。別の写真で試してください。'; });
 });
 document.addEventListener('submit', function(e){ if(e.target.id==='editor'){ e.preventDefault(); saveEditor(); } });
-document.addEventListener('input', function(e){ if(e.target.id==='q'){ ui.q = e.target.value; saveUi(); render(); } });
+document.addEventListener('input', function(e){ if(e.target.id==='q'){ ui.q = e.target.value; saveUi(); renderList(); } });
 document.addEventListener('keydown', function(e){ var vw = document.querySelector('.viewer'); if(e.key==='Escape' && vw){ vw.remove(); return; } if(e.key==='Escape' && document.querySelector('.backdrop')){ if(pr) endPractice(); else closeSheet(); render(); } });
 
 render();
